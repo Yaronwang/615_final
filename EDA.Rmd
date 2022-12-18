@@ -1,0 +1,284 @@
+---
+title: "615_final"
+author: "Yalong Wang"
+date: "2022-12-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(fmsb)
+library(ggplot2)
+library(tidyverse)
+library(viridis)
+library(hrbrthemes)
+library(plotly)
+```
+
+## MBTA
+
+```{r}
+HR_Q4_2021 <- read.csv('/Users/yaron/study/615/Final/Travel_Times_2021/HRTravelTimesQ4_21.csv',header = T)
+LR_Q4_2021 <- read.csv('/Users/yaron/study/615/Final/Travel_Times_2021/LRTravelTimesQ4_21.csv',header = T)
+HR_Q1_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q1_HRTravelTimes.csv',header = T)
+LR_Q1_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q1_LRTravelTimes.csv',header = T)
+HR_Q2_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q2_HRTravelTimes.csv',header = T)
+LR_Q2_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q2_LRTravelTimes.csv',header = T)
+HR_Q3_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q3_HRTravelTimes.csv',header = T)
+LR_Q3_2022 <- read.csv('/Users/yaron/study/615/Final/TravelTimes_2022/2022-Q3_LRTravelTimes.csv',header = T)
+```
+
+```{r}
+date_21_10_to_21_12 <- c('2021-10-11', '2021-10-12', '2021-10-13', '2021-10-14', '2021-10-15', '2021-10-16', '2021-10-17',
+                      '2021-11-11', '2021-11-12', '2021-11-13', '2021-11-14', '2021-11-15', '2021-11-16', '2021-11-17',
+                      '2021-12-11', '2021-12-12', '2021-12-13', '2021-12-14', '2021-12-15', '2021-12-16', '2021-12-17')
+HR_21_10_to_21_12 <- HR_Q4_2021 %>% filter(service_date %in% date_21_10_to_21_12)
+LR_21_10_to_21_12 <- LR_Q4_2021 %>% filter(service_date %in% date_21_10_to_21_12)
+
+date_22_01_to_22_03 <- c('2022-01-11', '2022-01-12', '2022-01-13', '2022-01-14', '2022-01-15', '2022-01-16', '2022-01-17',
+                      '2022-02-11', '2022-02-12', '2022-02-13', '2022-02-14', '2022-02-15', '2022-02-16', '2022-02-17',
+                      '2022-03-11', '2022-03-12', '2022-03-13', '2022-03-14', '2022-03-15', '2022-03-16', '2022-03-17')
+HR_22_01_to_22_03 <- HR_Q1_2022 %>% filter(service_date %in% date_22_01_to_22_03)
+LR_22_01_to_22_03 <- LR_Q1_2022 %>% filter(service_date %in% date_22_01_to_22_03)
+
+date_22_04_to_22_06 <- c('2022-04-11', '2022-04-12', '2022-04-13', '2022-04-14', '2022-04-15', '2022-04-16', '2022-04-17',
+                      '2022-05-11', '2022-05-12', '2022-05-13', '2022-05-14', '2022-05-15', '2022-05-16', '2022-05-17',
+                      '2022-06-11', '2022-06-12', '2022-06-13', '2022-06-14', '2022-06-15', '2022-06-16', '2022-06-17')
+HR_22_04_to_22_06 <- HR_Q2_2022 %>% filter(service_date %in% date_22_04_to_22_06)
+LR_22_04_to_22_06 <- LR_Q2_2022 %>% filter(service_date %in% date_22_04_to_22_06)
+
+date_22_07_to_22_09 <- c('2022-07-11', '2022-07-12', '2022-07-13', '2022-07-14', '2022-07-15', '2022-07-16', '2022-07-17',
+                      '2022-08-11', '2022-08-12', '2022-08-13', '2022-08-14', '2022-08-15', '2022-08-16', '2022-08-17',
+                      '2022-09-11', '2022-09-12', '2022-09-13', '2022-09-14', '2022-09-15', '2022-09-16', '2022-09-17')
+HR_22_07_to_22_09 <- HR_Q3_2022 %>% filter(service_date %in% date_22_07_to_22_09)
+LR_22_07_to_22_09 <- LR_Q3_2022 %>% filter(service_date %in% date_22_07_to_22_09)
+
+rm(HR_Q4_2021, LR_Q4_2021, HR_Q1_2022, LR_Q1_2022, HR_Q2_2022, LR_Q2_2022, HR_Q3_2022, LR_Q3_2022, date_21_10_to_21_12,date_22_01_to_22_03,date_22_04_to_22_06,date_22_07_to_22_09)
+
+HR_data <- rbind(HR_21_10_to_21_12,HR_22_01_to_22_03,HR_22_04_to_22_06,HR_22_07_to_22_09)
+LR_data <- rbind(LR_21_10_to_21_12,LR_22_01_to_22_03,LR_22_04_to_22_06,LR_22_07_to_22_09)
+Subway_data <- rbind(HR_data,LR_data)
+Subway_data <- Subway_data[order(Subway_data$service_date),]
+rm(HR_21_10_to_21_12,HR_22_01_to_22_03,HR_22_04_to_22_06,HR_22_07_to_22_09,LR_21_10_to_21_12,LR_22_01_to_22_03,LR_22_04_to_22_06,LR_22_07_to_22_09)
+```
+
+```{r}
+unique(Subway_data$route_id)
+```
+
+```{r warning=FALSE}
+Orange <- nrow(Subway_data[which(Subway_data$route_id == 'Orange'),])
+Blue <- nrow(Subway_data[which(Subway_data$route_id == 'Blue'),])
+Red <- nrow(Subway_data[which(Subway_data$route_id == 'Red'),])
+Green_B <- nrow(Subway_data[which(Subway_data$route_id == 'Green-B'),])
+Green_C <- nrow(Subway_data[which(Subway_data$route_id == 'Green-C'),])
+Green_D <- nrow(Subway_data[which(Subway_data$route_id == 'Green-D'),])
+Green_E <- nrow(Subway_data[which(Subway_data$route_id == 'Green-E'),])
+Mattapan <- nrow(Subway_data[which(Subway_data$route_id == 'Mattapan'),])
+count_all <- cbind(Orange,Blue,Red,Green_B,Green_C,Green_D,Green_E,Mattapan)
+count_all <- as.data.frame(rbind(rep(4000000,10) , rep(0,10) , count_all))
+ 
+radarchart( count_all, axistype=1 , 
+ 
+    #custom polygon
+    pcol=rgb(0.2,0.5,0.5,0.9) , pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=4 , 
+ 
+    #custom the grid
+    cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,4000000,500000), cglwd=0.8,
+ 
+    #custom labels
+    vlcex=0.8,
+    title = "The count of different subway lines in the past one year"
+    )
+```
+This Graph shows the amount of data for each subway line. As you can see from the radar chart, Green-B has the most data, over 2,000,000 items, while Mattapan, on the other hand, has the least data, less than 500,000.
+
+```{r}
+data_Ora_70001 <- Subway_data[Subway_data$route_id == 'Orange'&Subway_data$to_stop_id == 70001,c("from_stop_id","travel_time_sec")] %>%
+group_by(from_stop_id) %>%
+summarise(ave_time = mean(travel_time_sec))
+data_Ora_70001$from_stop_id <- as.character(data_Ora_70001$from_stop_id)
+
+ggplot(data_Ora_70001, aes(x=from_stop_id, y=ave_time)) +
+  geom_segment( aes(x=from_stop_id, xend=from_stop_id, y=0, yend=ave_time), color="skyblue") +
+  geom_point( color="blue", size=4, alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  labs(x = "The average of time", y = "Stop station", title="The average of spending time to '70001' station from different stations")+ 
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+This graph shows the spending time of different stations to the '70001' station. As you can see, the time spending increases means the there is longer distance between this station and '70001' station, except '70278' station. In this case, we can find the reason why the data of '70278' is abnormal.
+
+```{r}
+data_70002_70001 <- Subway_data[Subway_data$from_stop_id == 70002&Subway_data$to_stop_id == 70001,c("service_date","travel_time_sec")] %>%
+group_by(service_date) %>%
+summarise(ave_time = mean(travel_time_sec))
+
+data_70002_70001$month <- substr(data_70002_70001$service_date,1,7)
+data_70002_70001$service_date <- substr(data_70002_70001$service_date,9,10)
+
+data_70002_70001 %>%
+  ggplot( aes(x=service_date, y=ave_time, group=month, color=month)) +
+    geom_line() +
+    scale_color_viridis(discrete = TRUE) +
+  labs(x = "Day", y = "Spending time", title="The different time spending for '70002' station to '70001' station") +
+    theme_ipsum()
+
+rm(data_70002_70001)
+
+```
+
+This graph shows the time spending of '70002' station to '70001' station for different date. Obviously,the line of '2021-10' is far above of others, which means the time spending on 2021, October is more than other month.
+
+##Bus
+
+```{r}
+Bus_10 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2021-10.csv', header = T)
+Bus_11 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2021-11.csv', header = T)
+Bus_12 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2021-12.csv', header = T)
+Bus_01 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-01.csv', header = T)
+Bus_02 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-02.csv', header = T)
+Bus_03 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-03.csv', header = T)
+Bus_04 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-04.csv', header = T)
+Bus_05 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-05.csv', header = T)
+Bus_06 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-06.csv', header = T)
+Bus_07 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-07.csv', header = T)
+Bus_08 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-08.csv', header = T)
+Bus_09 <- read.csv('/Users/yaron/study/615/Final/Bus_data/MBTA-Bus-Arrival-Departure-Times_2022-09.csv', header = T)
+```
+
+```{r}
+date_selected <- c('2021-10-11', '2021-10-12', '2021-10-13', '2021-10-14', '2021-10-15', '2021-10-16', '2021-10-17',
+                      '2021-11-11', '2021-11-12', '2021-11-13', '2021-11-14', '2021-11-15', '2021-11-16', '2021-11-17',
+                      '2021-12-11', '2021-12-12', '2021-12-13', '2021-12-14', '2021-12-15', '2021-12-16', '2021-12-17',
+                      '2022-01-11', '2022-01-12', '2022-01-13', '2022-01-14', '2022-01-15', '2022-01-16', '2022-01-17',
+                      '2022-02-11', '2022-02-12', '2022-02-13', '2022-02-14', '2022-02-15', '2022-02-16', '2022-02-17',
+                      '2022-03-11', '2022-03-12', '2022-03-13', '2022-03-14', '2022-03-15', '2022-03-16', '2022-03-17',
+                      '2022-04-11', '2022-04-12', '2022-04-13', '2022-04-14', '2022-04-15', '2022-04-16', '2022-04-17',
+                      '2022-05-11', '2022-05-12', '2022-05-13', '2022-05-14', '2022-05-15', '2022-05-16', '2022-05-17',
+                      '2022-06-11', '2022-06-12', '2022-06-13', '2022-06-14', '2022-06-15', '2022-06-16', '2022-06-17',
+                      '2022-07-11', '2022-07-12', '2022-07-13', '2022-07-14', '2022-07-15', '2022-07-16', '2022-07-17',
+                      '2022-08-11', '2022-08-12', '2022-08-13', '2022-08-14', '2022-08-15', '2022-08-16', '2022-08-17',
+                      '2022-09-11', '2022-09-12', '2022-09-13', '2022-09-14', '2022-09-15', '2022-09-16', '2022-09-17')
+Bus_10_selected <- Bus_10 %>% filter(service_date %in% date_selected)
+Bus_11_selected <- Bus_11 %>% filter(service_date %in% date_selected)
+Bus_12_selected <- Bus_12 %>% filter(service_date %in% date_selected)
+Bus_01_selected <- Bus_01 %>% filter(service_date %in% date_selected)
+Bus_02_selected <- Bus_02 %>% filter(service_date %in% date_selected)
+Bus_03_selected <- Bus_03 %>% filter(service_date %in% date_selected)
+Bus_04_selected <- Bus_04 %>% filter(service_date %in% date_selected)
+Bus_05_selected <- Bus_05 %>% filter(service_date %in% date_selected)
+Bus_06_selected <- Bus_06 %>% filter(service_date %in% date_selected)
+Bus_07_selected <- Bus_07 %>% filter(service_date %in% date_selected)
+Bus_08_selected <- Bus_08 %>% filter(service_date %in% date_selected)
+Bus_09_selected <- Bus_09 %>% filter(service_date %in% date_selected)
+Bus_data <- rbind(Bus_10_selected,Bus_12_selected,Bus_12_selected,Bus_01_selected,Bus_02_selected,Bus_03_selected,Bus_04_selected,Bus_05_selected,Bus_06_selected,Bus_07_selected,Bus_08_selected,Bus_09_selected)
+Bus_data <- Bus_data[order(Bus_data$service_date),]
+rm(Bus_10,Bus_11,Bus_12,Bus_01,Bus_02,Bus_03,Bus_04,Bus_05,Bus_06,Bus_07,Bus_08,Bus_09,Bus_10_selected,Bus_11_selected,Bus_12_selected,Bus_01_selected,Bus_02_selected,Bus_03_selected,Bus_04_selected,Bus_05_selected,Bus_06_selected,Bus_07_selected,Bus_08_selected,Bus_09_selected,date_selected)
+```
+
+```{r}
+Selected_bus_data <- Bus_data %>% filter(Bus_data$scheduled != '')
+Selected_bus_data <- Selected_bus_data %>% filter(Bus_data$actual != '')
+
+Selected_bus_data_01 <- Selected_bus_data[Selected_bus_data$route_id == "01",c("service_date","time_point_id","actual","scheduled")]
+Selected_bus_data_01$service_date <- substr(Selected_bus_data_01$service_date,1,7)
+Selected_bus_data_01$difftime <- (as.numeric(substr(Selected_bus_data_01$actual,12,13)) - as.numeric(substr(Selected_bus_data_01$scheduled,12,13))) * 3600 + (as.numeric(substr(Selected_bus_data_01$actual,15,16)) - as.numeric(substr(Selected_bus_data_01$scheduled,15,16))) * 60 +
+(as.numeric(substr(Selected_bus_data_01$actual,18,19)) - as.numeric(substr(Selected_bus_data_01$scheduled,18,19)))
+
+Selected_bus_data <- 
+  Selected_bus_data_01 %>%
+group_by(time_point_id,service_date) %>%
+summarise(ave_time = mean(difftime))
+
+ggplot(Selected_bus_data, aes(fill=service_date, y=ave_time, x=time_point_id)) + 
+    geom_bar(position="stack", stat="identity") + 
+  labs(x = "Station", y = "Delay time", title="The route '01' different station's delay time for different month")
+
+```
+The graph means the different time between the actual time to scheduled time for route '01' to different station. This graph means when buses arrive at ‘dudly’, 'maput', 'masta' and 'nubn' station, it often arrives in advance. However, buses arrive at other stations, it often delays.
+
+```{r}
+rm(Selected_bus_data,Selected_bus_data_01)
+```
+
+```{r}
+Selected_bus_data <- Bus_data %>% filter(Bus_data$actual != '')
+Selected_bus_data_1 <- Selected_bus_data[Selected_bus_data$route_id == '64'&Selected_bus_data$point_type == 'Startpoint',c("service_date","point_type","actual")]
+Selected_bus_data_2 <- Selected_bus_data[Selected_bus_data$route_id == '64'&Selected_bus_data$point_type == 'Endpoint',c("service_date","point_type","actual")]
+Selected_bus_data_1$Time <- as.numeric(substr(Selected_bus_data_1$actual,12,13))
+Selected_bus_data_2$Time <- as.numeric(substr(Selected_bus_data_2$actual,12,13))
+
+Selected_bus_data_1%>%
+  ggplot( aes(x=Time)) +
+    geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8)+
+  labs(x = "Time", y = "Density", title="The start point time for route '64'")
+```
+This graph shows the route '64' Departure time distribution figure. It shows That the peak is reached at 7 a.m. departure time. The 4:00 a.m. departure time reached its lowest point.
+
+```{r}
+Selected_bus_data_2%>%
+  ggplot( aes(x=Time)) +
+    geom_density(fill="#69b3a2", color="#e9ecef", alpha=0.8)+
+  labs(x = "Time", y = "Density", title="The end point time for route '64'")
+```
+
+This graph is as same as the above one. It shows the route '64' distribution arrival times at the terminal, with the highest arrival time at 8 a.m. Which means ‘65’ route from the start to the end point almost spend an hour.
+
+##Ferry
+
+```{r}
+Ferry_data <- read.csv('/Users/yaron/study/615/Final/MBTA_Ferry_Daily_Ridership_by_Trip.csv',header = T)
+selected_date <- c('2020/10/11', '2020/10/12', '2020/10/13', '2020/10/14', '2020/10/15', '2020/10/16', '2020/10/17',
+                      '2020/11/11', '2020/11/12', '2020/11/13', '2020/11/14', '2020/11/15', '2020/11/16', '2020/11/17',
+                      '2020/12/11', '2020/12/12', '2020/12/13', '2020/12/14', '2020/12/15', '2020/12/16', '2020/12/17',
+                      '2021/01/11', '2021/01/12', '2021/01/13', '2021/01/14', '2021/01/15', '2021/01/16', '2021/01/17',
+                      '2021/02/11', '2021/02/12', '2021/02/13', '2021/02/14', '2021/02/15', '2021/02/16', '2021/02/17',
+                      '2021/03/11', '2021/03/12', '2021/03/13', '2021/03/14', '2021/03/15', '2021/03/16', '2021/03/17',
+                      '2021/04/11', '2021/04/12', '2021/04/13', '2021/04/14', '2021/04/15', '2021/04/16', '2021/04/17',
+                      '2021/05/11', '2021/05/12', '2021/05/13', '2021/05/14', '2021/05/15', '2021/05/16', '2021/05/17',
+                      '2021/06/11', '2021/06/12', '2021/06/13', '2021/06/14', '2021/06/15', '2021/06/16', '2021/06/17',
+                      '2021/07/11', '2021/07/12', '2021/07/13', '2021/07/14', '2021/07/15', '2021/07/16', '2021/07/17',
+                      '2021/08/11', '2021/08/12', '2021/08/13', '2021/08/14', '2021/08/15', '2021/08/16', '2021/08/17',
+                      '2021/09/11', '2021/09/12', '2021/09/13', '2021/09/14', '2021/09/15', '2021/09/16', '2021/09/17')
+Ferry_data$date <-substr(Ferry_data$service_date,1,10)
+Ferry_selected_data <- Ferry_data %>% filter(date %in% selected_date)
+Ferry_selected_data <- Ferry_selected_data[order(Ferry_selected_data$date),]
+Ferry_selected_data$month <-substr(Ferry_selected_data$date,1,7)
+```
+
+```{r}
+F1 <- nrow(Ferry_selected_data[which(Ferry_selected_data$route_id == 'F1'),])
+F2H <- nrow(Ferry_selected_data[which(Ferry_selected_data$route_id == 'F2H'),])
+F4 <- nrow(Ferry_selected_data[which(Ferry_selected_data$route_id == 'F4'),])
+count_all <- data.frame(Name = c('F1','F2H','F4'), count = c(F1,F2H,F4))
+
+count_all %>%
+  ggplot( aes(x=Name, y=count)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()+
+  labs(x = "Count", y = "route_id", title="The count of different route_id")
+```
+This graph shows the count of different 'route'. As you can see, the 'F4' route has the most count, which means the 'F4' count has  high flow rate.
+
+```{r}
+Ferry_selected_data$departure_hour <- as.numeric(substr(Ferry_selected_data$mbta_sched_departure,12,13))
+
+ggplot(data=Ferry_selected_data, aes(x=departure_hour, group=month, fill=month)) +
+    geom_density(adjust=1.5) +
+    theme_ipsum() +
+    facet_wrap(~month) +
+    theme(
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      axis.ticks.x=element_blank()
+    ) + labs(title="The density of departure time for different month")
+```
+This graph shows the density of ferry's departure time for different month. In those figures, different month does not have too much changes.
